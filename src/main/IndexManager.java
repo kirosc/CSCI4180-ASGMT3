@@ -1,5 +1,7 @@
 package main;
 
+import static java.lang.System.exit;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -78,7 +80,7 @@ public class IndexManager {
 
       // Is a zero chunk
       if (isZeroChunk(fingerprint)) {
-        int size = Integer.parseInt(fingerprint.substring(1));
+        int size = getZeroChunkSize(fingerprint);
         chunkSizes.put(fingerprint, size);
         return;
       }
@@ -94,18 +96,30 @@ public class IndexManager {
     }
   }
 
+  public InputStream downloadChunk(String fingerprint) {
+    if (isZeroChunk(fingerprint)) {
+      int size = getZeroChunkSize(fingerprint);
+      return new ByteArrayInputStream(new byte[size]);
+    }
+
+    // Normal chunk
+    Path path = Paths.get(directory, fingerprint);
+    return handler.read(path);
+  }
+
   public synchronized void removeChunk(String fingerprint) {
     int referenceCount = chunkCount.get(fingerprint);
     if (referenceCount-- > 1) {
       chunkCount.put(fingerprint, referenceCount);
+      System.out.println(referenceCount + " " + fingerprint);
     } else {
       chunkCount.remove(fingerprint);
       chunkSizes.remove(fingerprint);
-    }
 
-    if (!isZeroChunk(fingerprint)) {
-      Path path = Paths.get(directory, fingerprint);
-      handler.delete(path);
+      if (!isZeroChunk(fingerprint)) {
+        Path path = Paths.get(directory, fingerprint);
+        handler.delete(path);
+      }
     }
   }
 
@@ -115,6 +129,24 @@ public class IndexManager {
    */
   private boolean isZeroChunk(String fingerprint) {
     return fingerprint.startsWith("Z");
+  }
+
+  private int getZeroChunkSize(String fingerprint) {
+    return Integer.parseInt(fingerprint.substring(1));
+  }
+
+  public void checkIfFileAlreadyExists(String filename) {
+    if (fileRecipe.containsKey(filename)) {
+      System.out.println("File " + filename + " already exists");
+      exit(1);
+    }
+  }
+
+  public void checkIfFileExists(String filename) {
+    if (!fileRecipe.containsKey(filename)) {
+      System.out.println("File " + filename + " does not exist");
+      exit(1);
+    }
   }
 
   public void printStat() {

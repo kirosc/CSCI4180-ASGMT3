@@ -7,10 +7,14 @@ import static main.Utils.Utils.readFile;
 import static main.Utils.Utils.setQ;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.SequenceInputStream;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -50,7 +54,7 @@ public class MyDedup {
         upload(args);
         break;
       case "download":
-        System.out.println("download");
+        download(args);
         break;
       case "delete":
         delete(args);
@@ -77,6 +81,8 @@ public class MyDedup {
       System.out.println("chunk size needs to be a power of 2");
       exit(1);
     }
+
+    indexManager.checkIfFileAlreadyExists(pathname.toString());
 
     byte[] fileBytes = readFile(pathname);
     ArrayList<Chunk> chunks;
@@ -232,20 +238,37 @@ public class MyDedup {
     checkArgsLength(args, 4);
     String fileToDownload = args[1];
     String localFileName = args[2];
+
+    indexManager.checkIfFileExists(fileToDownload);
+
+    InputStream stream = indexManager.fileRecipe.get(fileToDownload).stream().parallel()
+        .map(fingerprint -> indexManager.downloadChunk(fingerprint))
+        .reduce(
+            new ByteArrayInputStream(new byte[0]),
+            SequenceInputStream::new
+        );
+
+
+    try {
+      System.out.println(stream.available());
+      System.out.println(Paths.get(localFileName));
+
+      Files.copy(stream, Paths.get(localFileName), StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
+      e.printStackTrace();
+      exit(1);
+    }
   }
 
   public static void delete(String[] args) {
     checkArgsLength(args, 3);
     String fileToDelete = args[1];
 
-    if (indexManager.fileRecipe.containsKey(fileToDelete)) {
-      indexManager.fileRecipe.get(fileToDelete).stream().parallel()
-          .forEach(fingerprint -> indexManager.removeChunk(fingerprint));
-      indexManager.fileRecipe.remove(fileToDelete);
-    } else {
-      System.out.println("File " + fileToDelete + " does not exist");
-      exit(1);
-    }
+    indexManager.checkIfFileExists(fileToDelete);
+
+    indexManager.fileRecipe.get(fileToDelete).stream().parallel()
+        .forEach(fingerprint -> indexManager.removeChunk(fingerprint));
+    indexManager.fileRecipe.remove(fileToDelete);
 
     indexManager.printStat();
     indexManager.save();
