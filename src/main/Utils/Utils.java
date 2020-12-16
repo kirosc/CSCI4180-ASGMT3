@@ -1,4 +1,4 @@
-package Utils;
+package main.Utils;
 
 import static java.lang.System.exit;
 

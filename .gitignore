@@ -99,4 +99,8 @@ hs_err_pid*
 
 # Custom
 lib/
+data/
+mydedup.index
 Test.java
+randomfile
+zerofile
