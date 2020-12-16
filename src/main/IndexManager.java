@@ -77,7 +77,7 @@ public class IndexManager {
       chunkCount.put(fingerprint, 1);
 
       // Is a zero chunk
-      if (fingerprint.startsWith("Z")) {
+      if (isZeroChunk(fingerprint)) {
         int size = Integer.parseInt(fingerprint.substring(1));
         chunkSizes.put(fingerprint, size);
         return;
@@ -94,22 +94,46 @@ public class IndexManager {
     }
   }
 
+  public synchronized void removeChunk(String fingerprint) {
+    int referenceCount = chunkCount.get(fingerprint);
+    if (referenceCount-- > 1) {
+      chunkCount.put(fingerprint, referenceCount);
+    } else {
+      chunkCount.remove(fingerprint);
+      chunkSizes.remove(fingerprint);
+    }
+
+    if (!isZeroChunk(fingerprint)) {
+      Path path = Paths.get(directory, fingerprint);
+      handler.delete(path);
+    }
+  }
+
+  /**
+   * Check if a chunk is a zero chunk given the fingerprint. Note: MD5 hex representation:
+   * [a-fA-F0-9]
+   */
+  private boolean isZeroChunk(String fingerprint) {
+    return fingerprint.startsWith("Z");
+  }
+
   public void printStat() {
     int chunkTotalSize = chunkCount.keySet().stream()
         .map(fingerprint -> chunkSizes.get(fingerprint))
         .mapToInt(Integer::intValue).sum();
 
     List<String> uniqueChunks = chunkCount.keySet().stream()
-        .filter(fingerprint -> !fingerprint.startsWith("Z"))
+        .filter(fingerprint -> !isZeroChunk(fingerprint))
         .collect(Collectors.toList());
 
     int uniqueChunkTotalSize = uniqueChunks.stream()
         .map(fingerprint -> chunkSizes.get(fingerprint))
         .mapToInt(Integer::intValue).sum();
 
-    DecimalFormat df = new DecimalFormat("#.00");
+    DecimalFormat df = new DecimalFormat("0.00");
     df.setRoundingMode(RoundingMode.HALF_UP);
-    String ratio = df.format((double) chunkTotalSize / uniqueChunkTotalSize);
+    String ratio = chunkTotalSize == 0 ? df.format(0)
+        : df.format((double) chunkTotalSize / uniqueChunkTotalSize);
 
     System.out.println("Total number of files that have been stored: " + fileRecipe.size());
     System.out.println("Total number of pre-deduplicated chunks in storage: " + chunkCount.size());

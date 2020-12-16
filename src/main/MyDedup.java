@@ -24,6 +24,8 @@ public class MyDedup {
   static int FILE_SIZE, MIN_CHUNK_SIZE, MAX_CHUNK_SIZE;
 
   static StorageHandler handler;
+  static IndexManager indexManager;
+
 
   public static void main(String[] args) {
     if (args.length == 0) {
@@ -39,19 +41,24 @@ public class MyDedup {
       handler = new LocalHandler();
     }
 
+    indexManager = new IndexManager(handler);
+
     String mode = args[0];
 
-    if (mode.equals("upload")) {
-      upload(args);
-    } else if (mode.equals("download")) {
-      System.out.println("download");
-    } else if (mode.equals("delete")) {
-      System.out.println("delete");
-    } else {
-      printUsage();
+    switch (mode) {
+      case "upload":
+        upload(args);
+        break;
+      case "download":
+        System.out.println("download");
+        break;
+      case "delete":
+        delete(args);
+        break;
+      default:
+        printUsage();
+        break;
     }
-
-
   }
 
   public static void upload(String[] args) {
@@ -73,13 +80,10 @@ public class MyDedup {
 
     byte[] fileBytes = readFile(pathname);
     ArrayList<Chunk> chunks;
-    IndexManager indexManager;
 
     MIN_CHUNK_SIZE = minChunkSize;
     MAX_CHUNK_SIZE = maxChunkSize;
     FILE_SIZE = fileBytes.length;
-
-    indexManager = new IndexManager(handler);
 
     chunks = generateChunks(fileBytes, MIN_CHUNK_SIZE, d, avgChunkSize);
 
@@ -233,6 +237,18 @@ public class MyDedup {
   public static void delete(String[] args) {
     checkArgsLength(args, 3);
     String fileToDelete = args[1];
+
+    if (indexManager.fileRecipe.containsKey(fileToDelete)) {
+      indexManager.fileRecipe.get(fileToDelete).stream().parallel()
+          .forEach(fingerprint -> indexManager.removeChunk(fingerprint));
+      indexManager.fileRecipe.remove(fileToDelete);
+    } else {
+      System.out.println("File " + fileToDelete + " does not exist");
+      exit(1);
+    }
+
+    indexManager.printStat();
+    indexManager.save();
   }
 
   public static void checkArgsLength(String[] args, int length) {
