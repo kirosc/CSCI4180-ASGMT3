@@ -1,4 +1,4 @@
-package main.Handler;
+package Handler;
 
 
 import java.io.IOException;
@@ -35,6 +35,9 @@ public class LocalHandler implements StorageHandler {
 
   public void write(Path path, InputStream stream) {
     try {
+      if (path.getParent() != null) {
+        Files.createDirectories(path);
+      }
       Files.copy(stream, path, StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {
       e.printStackTrace();

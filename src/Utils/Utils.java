@@ -1,26 +1,15 @@
-package main.Utils;
+package Utils;
 
 import static java.lang.System.exit;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 
 public class Utils {
-  static int q;
 
-  public static File getOrCreateIndexFile() {
-    File index = new File("mydedup.index");
-    try {
-      index.createNewFile();
-    } catch (IOException e) {
-      e.printStackTrace();
-      exit(1);
-    }
-    return index;
-  }
+  static int q;
 
   public static byte[] readFile(Path path) {
     byte[] b = {};

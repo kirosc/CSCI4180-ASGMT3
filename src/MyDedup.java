@@ -1,11 +1,12 @@
-package main;
-
+import static Utils.Utils.modQ;
+import static Utils.Utils.powerAndModQ;
+import static Utils.Utils.readFile;
+import static Utils.Utils.setQ;
 import static java.lang.System.exit;
-import static main.Utils.Utils.modQ;
-import static main.Utils.Utils.powerAndModQ;
-import static main.Utils.Utils.readFile;
-import static main.Utils.Utils.setQ;
 
+import Handler.AzureHandler;
+import Handler.LocalHandler;
+import Handler.StorageHandler;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,8 +21,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import main.Handler.LocalHandler;
-import main.Handler.StorageHandler;
 
 public class MyDedup {
 
@@ -41,8 +40,10 @@ public class MyDedup {
     if (storageMethod.equals("local")) {
       handler = new LocalHandler();
     } else if (storageMethod.equals("azure")) {
-      // TODO: Azure
-      handler = new LocalHandler();
+      handler = new AzureHandler();
+    } else {
+      System.out.println("Storage method not supported");
+      exit(1);
     }
 
     indexManager = new IndexManager(handler);
@@ -248,11 +249,7 @@ public class MyDedup {
             SequenceInputStream::new
         );
 
-
     try {
-      System.out.println(stream.available());
-      System.out.println(Paths.get(localFileName));
-
       Files.copy(stream, Paths.get(localFileName), StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {
       e.printStackTrace();

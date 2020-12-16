@@ -1,4 +1,4 @@
-package main.Handler;
+package Handler;
 
 import java.io.InputStream;
 import java.nio.file.Path;

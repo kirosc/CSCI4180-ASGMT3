@@ -1,7 +1,6 @@
-package main;
-
 import static java.lang.System.exit;
 
+import Handler.StorageHandler;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -15,7 +14,6 @@ import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-import main.Handler.StorageHandler;
 
 public class IndexManager {
 
@@ -34,6 +32,7 @@ public class IndexManager {
 
   public StorageHandler handler;
 
+  @SuppressWarnings("unchecked")
   public IndexManager(StorageHandler handler) {
     this.handler = handler;
 
