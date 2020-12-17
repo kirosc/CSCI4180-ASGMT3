@@ -86,7 +86,6 @@ fabric.properties
 .mtj.tmp/
 
 # Package Files #
-*.jar
 *.war
 *.nar
 *.ear
@@ -98,9 +97,8 @@ fabric.properties
 hs_err_pid*
 
 # Custom
-lib/
+.DS_Store
 data/
-mydedup.index
 Test.java
 randomfile
 zerofile*
