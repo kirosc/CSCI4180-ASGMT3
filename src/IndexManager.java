@@ -105,7 +105,6 @@ public class IndexManager {
     int referenceCount = chunkCount.get(fingerprint);
     if (referenceCount-- > 1) {
       chunkCount.put(fingerprint, referenceCount);
-      System.out.println(referenceCount + " " + fingerprint);
     } else {
       chunkCount.remove(fingerprint);
       chunkSizes.remove(fingerprint);
