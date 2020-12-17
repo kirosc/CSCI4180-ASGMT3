@@ -9,5 +9,4 @@ clean:
 	rm -f *.class
 	rm -f Utils/*.class
 	rm -f Handler/*.class
-	rm -f *.index
 	rm -rf data
