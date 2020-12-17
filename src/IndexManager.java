@@ -8,8 +8,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.RoundingMode;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +16,6 @@ import java.util.stream.Collectors;
 public class IndexManager {
 
   private static final String INDEX_FILE = "mydedup.index";
-  private static final String directory = "data";
 
 
   // Chunk fingerprint => Reference counter
@@ -90,8 +87,7 @@ public class IndexManager {
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-      Path path = Paths.get(directory, fingerprint);
-      handler.write(path, stream);
+      handler.write(fingerprint, stream);
     }
   }
 
@@ -102,8 +98,7 @@ public class IndexManager {
     }
 
     // Normal chunk
-    Path path = Paths.get(directory, fingerprint);
-    return handler.read(path);
+    return handler.read(fingerprint);
   }
 
   public synchronized void removeChunk(String fingerprint) {
@@ -116,8 +111,7 @@ public class IndexManager {
       chunkSizes.remove(fingerprint);
 
       if (!isZeroChunk(fingerprint)) {
-        Path path = Paths.get(directory, fingerprint);
-        handler.delete(path);
+        handler.delete(fingerprint);
       }
     }
   }

@@ -16,7 +16,7 @@ public class Utils {
     try {
       b = Files.readAllBytes(path);
     } catch (NoSuchFileException e) {
-      System.out.println("File " + path + "does not exist");
+      System.out.println("File " + path + " does not exist");
       exit(1);
     } catch (IOException e) {
       e.printStackTrace();

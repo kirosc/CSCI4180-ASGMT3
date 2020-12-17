@@ -6,6 +6,8 @@ build:
 	javac -cp .:./lib/* *.java
 
 clean:
-	rm *.class
-	rm *.index
+	rm -f *.class
+	rm -f Utils/*.class
+	rm -f Handler/*.class
+	rm -f *.index
 	rm -rf data

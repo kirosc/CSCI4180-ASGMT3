@@ -1,6 +1,5 @@
 package Handler;
 
-
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
@@ -13,6 +12,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class AzureHandler implements StorageHandler {
+
+  private static final String directory = "data";
 
   // TODO: Uncomment for submission
 //  static {
@@ -43,14 +44,10 @@ public class AzureHandler implements StorageHandler {
 
   @Override
   public InputStream read(String path) {
-    return read(Paths.get(path));
-  }
-
-  @Override
-  public InputStream read(Path path) {
+    Path mPath = Paths.get(directory, path);
     try {
       ByteArrayOutputStream stream = new ByteArrayOutputStream();
-      CloudBlockBlob blob = container.getBlockBlobReference(path.toString());
+      CloudBlockBlob blob = container.getBlockBlobReference(mPath.toString());
       blob.download(stream);
       stream.close();
       return new ByteArrayInputStream(stream.toByteArray());
@@ -62,31 +59,38 @@ public class AzureHandler implements StorageHandler {
   }
 
   @Override
-  public void write(String path, InputStream stream) {
-    write(Paths.get(path), stream);
+  public InputStream read(Path path) {
+    return read(path.toString());
   }
 
-  public void write(Path path, InputStream stream) {
+  @Override
+  public void write(String path, InputStream stream) {
+    Path mPath = Paths.get(directory, path);
     try {
-      CloudBlockBlob blob = container.getBlockBlobReference(path.toString());
+      CloudBlockBlob blob = container.getBlockBlobReference(mPath.toString());
       blob.upload(stream, stream.available());
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  @Override
-  public void delete(String path) {
-    delete(Paths.get(path));
+  public void write(Path path, InputStream stream) {
+    write(path.toString(), stream);
   }
 
   @Override
-  public void delete(Path path) {
+  public void delete(String path) {
+    Path mPath = Paths.get(directory, path);
     try {
-      CloudBlockBlob blob = container.getBlockBlobReference(path.toString());
+      CloudBlockBlob blob = container.getBlockBlobReference(mPath.toString());
       blob.deleteIfExists();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public void delete(Path path) {
+    delete(path.toString());
   }
 }

@@ -1,6 +1,5 @@
 package Handler;
 
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -10,16 +9,13 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 public class LocalHandler implements StorageHandler {
+  private static final String directory = "data";
 
   @Override
   public InputStream read(String path) {
-    return read(Paths.get(path));
-  }
-
-  @Override
-  public InputStream read(Path path) {
+    Path mPath = Paths.get(directory, path);
     try {
-      return Files.newInputStream(path);
+      return Files.newInputStream(mPath);
     } catch (NoSuchFileException e) {
       return null;
     } catch (IOException ioe) {
@@ -29,32 +25,39 @@ public class LocalHandler implements StorageHandler {
   }
 
   @Override
-  public void write(String path, InputStream stream) {
-    write(Paths.get(path), stream);
+  public InputStream read(Path path) {
+    return read(path.toString());
   }
 
-  public void write(Path path, InputStream stream) {
+  @Override
+  public void write(String path, InputStream stream) {
+    Path mPath = Paths.get(directory, path);
     try {
-      if (path.getParent() != null) {
-        Files.createDirectories(path);
+      if (mPath.getParent() != null) {
+        Files.createDirectories(mPath);
       }
-      Files.copy(stream, path, StandardCopyOption.REPLACE_EXISTING);
+      Files.copy(stream, mPath, StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  public void write(Path path, InputStream stream) {
+    write(path.toString(), stream);
   }
 
   @Override
   public void delete(String path) {
-    delete(Paths.get(path));
+    Path mPath = Paths.get(directory, path);
+    try {
+      Files.deleteIfExists(mPath);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
   public void delete(Path path) {
-    try {
-      Files.deleteIfExists(path);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    delete(path.toString());
   }
 }
