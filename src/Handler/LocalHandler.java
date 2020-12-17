@@ -34,7 +34,7 @@ public class LocalHandler implements StorageHandler {
     Path mPath = Paths.get(directory, path);
     try {
       if (mPath.getParent() != null) {
-        Files.createDirectories(mPath);
+        Files.createDirectories(mPath.getParent());
       }
       Files.copy(stream, mPath, StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {
